@@ -24,21 +24,35 @@ using namespace std;
  */
 TrigramProfile buildTrigramProfile(const Text &text)
 {
-    wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-
-    // Your code goes here...
-    for (auto line : text)
+    TrigramProfile trigrams;
+    wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;    
+    
+    for (auto& line : text)
     {
         if ((line.length() > 0) &&
             (line[line.length() - 1] == '\r'))
             line = line.substr(0, line.length() - 1);
+
+        if (line.length() < 3)
+        {
+            continue;
+        }
+
+		wstring wline = converter.from_bytes(line);
+        for (int offset = 0; offset < 3; offset++)
+        {
+            for (int numTrigram = 0; (3 * numTrigram + offset + 3) < wline.length(); numTrigram++)
+            {
+				string trigram = converter.to_bytes(wline.substr(3 * numTrigram + offset, 3));
+				trigrams[trigram] ++;
+            }
+        }
     }
 
-    // Tip: converts UTF-8 string to wstring
-    // wstring unicodeString = converter.from_bytes(textLine);
-
-    // Tip: convert wstring to UTF-8 string
-    // string trigram = converter.to_bytes(unicodeTrigram);
+    for (auto &par : trigrams)
+    {
+        cout << "\"" << par.first << "\": " << par.second << endl;
+    }
 
     return TrigramProfile(); // Fill-in result here
 }
@@ -79,6 +93,6 @@ float getCosineSimilarity(TrigramProfile &textProfile, TrigramProfile &languageP
 string identifyLanguage(const Text &text, LanguageProfiles &languages)
 {
     // Your code goes here...
-
+    buildTrigramProfile(text);
     return ""; // Fill-in result here
 }
