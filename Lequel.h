@@ -10,17 +10,17 @@
 #ifndef LEQUEL_H
 #define LEQUEL_H
 
-#include <list>
-#include <map>
+#include <vector>
+#include <unordered_map>
 #include <string>
 
 #include "Text.h"
 
 // TrigramProfile: map of trigram -> frequency
-typedef std::map<std::string, float> TrigramProfile;
+typedef std::unordered_map<std::string, float> TrigramProfile;
 
 // TrigramList: list of trigrams
-typedef std::list<std::string> TrigramList;
+typedef std::vector<std::string> TrigramList;
 
 struct LanguageProfile
 {
@@ -28,12 +28,12 @@ struct LanguageProfile
     TrigramProfile trigramProfile;
 };
 
-typedef std::list<LanguageProfile> LanguageProfiles;
+typedef std::vector<LanguageProfile> LanguageProfiles;
 
 // Functions
 TrigramProfile buildTrigramProfile(const Text &text);
 void normalizeTrigramProfile(TrigramProfile &trigramProfile);
-float getCosineSimilarity(TrigramProfile &textProfile, TrigramProfile &languageProfile);
+float getCosineSimilarity(const TrigramProfile &textProfile, const TrigramProfile& language);
 std::string identifyLanguage(const Text &text, LanguageProfiles &languages);
 
 #endif
