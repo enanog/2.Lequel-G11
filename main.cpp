@@ -1,7 +1,7 @@
 /**
  * @brief Lequel? main module
- * @author Marc S. Ressl
- * 
+ * @author Dylan Frigerio, Micaela Dinsen, Marc S. Ressl
+ *
  * @copyright Copyright (c) 2022-2023
  */
 
@@ -21,8 +21,7 @@ using namespace std::chrono;
 const string LANGUAGECODE_NAMES_FILE = "resources/languagecode_names_es.csv";
 const string TRIGRAMS_PATH = "resources/trigrams/";
 
-// Estados de la aplicación
-enum class AppState 
+enum class AppState
 {
     WAITING,
     PROCESSING,
@@ -31,23 +30,22 @@ enum class AppState
 
 /**
  * @brief Loads trigram data.
- * 
+ *
  * @param languageCodeNames Map of language code vs. language name (in i18n locale).
  * @param languages The trigram profiles.
  * @return true Succeeded
  * @return false Failed
  */
-bool loadLanguagesData(map<string, string> &languageCodeNames, LanguageProfiles &languages)
+bool loadLanguagesData(map<string, string>& languageCodeNames, LanguageProfiles& languages)
 {
-    // Reads available language codes
     cout << "Reading language codes..." << endl;
 
     CSVData languageCodesCSVData;
     if (!readCSV(LANGUAGECODE_NAMES_FILE, languageCodesCSVData))
         return false;
 
-    // Reads trigram profile for each language code
-    for (auto &fields : languageCodesCSVData)
+    // Load trigram profile for each language code
+    for (auto& fields : languageCodesCSVData)
     {
         if (fields.size() != 2)
             continue;
@@ -64,11 +62,11 @@ bool loadLanguagesData(map<string, string> &languageCodeNames, LanguageProfiles 
             return false;
 
         languages.push_back(LanguageProfile());
-        LanguageProfile &language = languages.back();
+        LanguageProfile& language = languages.back();
 
         language.languageCode = languageCode;
 
-        for (auto &fields : languageCSVData)
+        for (auto& fields : languageCSVData)
         {
             if (fields.size() != 2)
                 continue;
@@ -102,7 +100,7 @@ int main(int, char* [])
 
     SetTargetFPS(60);
 
-    // Variables de estado
+    // Application state variables
     AppState currentState = AppState::WAITING;
     string languageCode = "---";
     double processingTimeMs = 0.0;
@@ -115,7 +113,7 @@ int main(int, char* [])
 
     while (!WindowShouldClose())
     {
-        // Manejo de entrada del portapapeles
+        // Handle clipboard input (Ctrl+V or Cmd+V)
         if (IsKeyPressed(KEY_V) &&
             (IsKeyDown(KEY_LEFT_CONTROL) ||
                 IsKeyDown(KEY_RIGHT_CONTROL) ||
@@ -129,7 +127,7 @@ int main(int, char* [])
             isFromFile = false;
         }
 
-        // Manejo de archivos arrastrados
+        // Handle dropped files
         if (IsFileDropped())
         {
             FilePathList droppedFiles = LoadDroppedFiles();
@@ -144,7 +142,7 @@ int main(int, char* [])
             UnloadDroppedFiles(droppedFiles);
         }
 
-        // Procesamiento después de mostrar "Procesando..."
+        // Process text after showing "Processing..." message
         if (loadedText && !processing && currentState == AppState::PROCESSING)
         {
             startTime = high_resolution_clock::now();
@@ -183,18 +181,16 @@ int main(int, char* [])
         ClearBackground(BEIGE);
 
         DrawText("Lequel?", 80, 80, 128, BROWN);
-        DrawText("Copia y pega con Ctrl+V, o arrastra un archivo...", 80, 220, 24, BROWN);
+        DrawText("Copy and paste with Ctrl+V, or drag a file...", 80, 220, 24, BROWN);
 
-        // Mostrar contenido según el estado
         switch (currentState)
         {
         case AppState::WAITING:
-            // No mostrar nada adicional
             break;
 
         case AppState::PROCESSING:
         {
-            string processingText = "Procesando...";
+            string processingText = "Processing...";
             int processingWidth = MeasureText(processingText.c_str(), 48);
             DrawText(processingText.c_str(), (screenWidth - processingWidth) / 2, 315, 48, DARKBROWN);
             processing = false;
@@ -206,14 +202,14 @@ int main(int, char* [])
             string languageString = "";
             if (languageCode == "error")
             {
-                languageString = "Error al procesar";
+                languageString = "Processing error";
             }
             else if (languageCode != "---")
             {
                 if (languageCodeNames.find(languageCode) != languageCodeNames.end())
                     languageString = languageCodeNames[languageCode];
                 else
-                    languageString = "Desconocido";
+                    languageString = "Unknown";
             }
 
             if (!languageString.empty())
@@ -221,15 +217,15 @@ int main(int, char* [])
                 int languageStringWidth = MeasureText(languageString.c_str(), 48);
                 DrawText(languageString.c_str(), (screenWidth - languageStringWidth) / 2, 315, 48, DARKBROWN);
 
+                // Display processing time
                 string timeText;
-                // Mostrar tiempo de procesamiento
                 if (processingTimeMs < 1000)
                 {
-                    timeText = "Tiempo de procesamiento: " + to_string(processingTimeMs) + " ms";
+                    timeText = "Processing time: " + to_string(processingTimeMs) + " ms";
                 }
                 else
                 {
-					timeText = "Tiempo de procesamiento: " + to_string(processingTimeMs / 1000.0) + " s";
+                    timeText = "Processing time: " + to_string(processingTimeMs / 1000.0) + " s";
                 }
                 int timeWidth = MeasureText(timeText.c_str(), 20);
                 DrawText(timeText.c_str(), (screenWidth - timeWidth) / 2, 375, 20, DARKBROWN);
@@ -240,7 +236,7 @@ int main(int, char* [])
         }
         }
 
-        // Reset de estado para nueva entrada
+        // Reset state for new input
         if (currentState == AppState::RESULT_READY &&
             (IsKeyPressed(KEY_V) || IsFileDropped() || IsKeyPressed(KEY_SPACE)))
         {

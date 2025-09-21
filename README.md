@@ -2,7 +2,7 @@
 
 ## Integrantes del grupo y contribución al trabajo de cada integrante
 * Micaela Dinsen: optimizaciones de rendimiento, mejoras en precisión de detección, documentación del código.
-* [Nombre]: [contribución]
+* Dylan Frigerio: implementación inicial, pruebas de precisión, documentación del código.
 
 
 ## Respuestas del enunciado
@@ -89,4 +89,5 @@ Lequel dice que está en "desconocido", debido a que el perfil de idioma para el
 ## Bonus points
 
 El cuello de botella es la creación del perfil de trigramas (muchas asignaciones de memoria y conversiones), lo resolvimos con la optimización del límite de 10,000 líneas, las optimizaciones de string_view y pre-reserva de memoria.
+Como bonus tambien agregamos la libreria de chronos para medir tiempos de ejecución y mostrar en consola.
 

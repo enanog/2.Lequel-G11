@@ -3,20 +3,28 @@
   "WorkspaceRootPath": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\CSVData.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:CSVData.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\Lequel.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Lequel.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\Text.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Text.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\Lequel.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Lequel.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\Text.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Text.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
     }
   ],
   "DocumentGroupContainers": [
@@ -31,40 +39,68 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "main.cpp",
+              "DocumentMoniker": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\main.cpp",
+              "RelativeDocumentMoniker": "main.cpp",
+              "ToolTip": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\main.cpp",
+              "RelativeToolTip": "main.cpp",
+              "ViewState": "AgIAACMCAAAAAAAAAAArwD8CAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-09-08T23:24:28.722Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CSVData.cpp",
+              "DocumentMoniker": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\CSVData.cpp",
+              "RelativeDocumentMoniker": "CSVData.cpp",
+              "ToolTip": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\CSVData.cpp",
+              "RelativeToolTip": "CSVData.cpp",
+              "ViewState": "AgIAAH4AAAAAAAAAAAAAAIIAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-09-21T20:36:59.384Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "README.md",
+              "DocumentMoniker": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\README.md",
+              "RelativeDocumentMoniker": "README.md",
+              "ToolTip": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\README.md",
+              "RelativeToolTip": "README.md",
+              "ViewState": "AgIAAEgAAAAAAAAAAAAAAAkAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-09-20T18:25:51.982Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "Lequel.cpp",
               "DocumentMoniker": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\Lequel.cpp",
               "RelativeDocumentMoniker": "Lequel.cpp",
               "ToolTip": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\Lequel.cpp",
               "RelativeToolTip": "Lequel.cpp",
-              "ViewState": "AgIAACEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABYAAAAAAAAAAAAkwDUAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-09-08T23:34:24.169Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "main.cpp",
-              "DocumentMoniker": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\main.cpp",
-              "RelativeDocumentMoniker": "main.cpp",
-              "ToolTip": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\main.cpp",
-              "RelativeToolTip": "main.cpp",
-              "ViewState": "AgIAAGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-08T23:24:28.722Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Lequel.h",
               "DocumentMoniker": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\Lequel.h",
               "RelativeDocumentMoniker": "Lequel.h",
               "ToolTip": "C:\\Users\\dylan\\OneDrive\\Desktop\\EDA\\2.Lequel-G8\\Lequel.h",
               "RelativeToolTip": "Lequel.h",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAAABMAAAAcAAAAAAAAAA==",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABUAAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-08T22:49:55.545Z"
+              "WhenOpened": "2025-09-08T22:49:55.545Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -76,7 +112,8 @@
               "RelativeToolTip": "Text.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-08T22:26:50.044Z"
+              "WhenOpened": "2025-09-08T22:26:50.044Z",
+              "EditorCaption": ""
             }
           ]
         }

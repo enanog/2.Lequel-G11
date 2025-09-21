@@ -1,6 +1,6 @@
 /**
  * @brief Lequel? language identification based on trigrams (Optimized)
- * @author Marc S. Ressl
+ * @author Dylan Frigerio, Micaela Dinsen, Marc S. Ressl
  *
  * @copyright Copyright (c) 2022-2023
  *
@@ -18,16 +18,21 @@
 using namespace std;
 
 namespace {
-    // Cache para evitar recrear el converter constantemente
+    // Thread-local converter to avoid constant recreation
     thread_local std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
+    /**
+     * @brief Extracts trigrams from a single line of text and adds them to the profile.
+     *
+     * @param line The input text line to process
+     * @param trigrams Reference to the trigram profile to update
+     */
     inline void extractTrigramsFromLine(const string& line, TrigramProfile& trigrams) {
         if (line.length() < 3) return;
 
-        // Crear string para manipulación (evitamos modificar string_view)
         string cleanLine(line);
 
-        // Remover caracteres de fin de línea más eficientemente
+        // Remove line ending characters
         while (!cleanLine.empty() && (cleanLine.back() == '\r' || cleanLine.back() == '\n')) {
             cleanLine.pop_back();
         }
@@ -35,42 +40,34 @@ namespace {
         if (cleanLine.length() < 3) return;
 
         try {
-            // Conversión a wstring para manejo correcto de caracteres Unicode
+            // Unicode conversion for proper character handling
             wstring wline = converter.from_bytes(cleanLine);
 
             if (wline.length() < 3) return;
 
-            // Pre-reserva de memoria del mapa:
-            // En lugar de hacer rehash en cada línea, lo hacemos una vez en buildTrigramProfile.
-            // Esto evita cálculos repetitivos dentro de este bucle.
-
-            // Uso de wstring_view para evitar crear strings:
-            // Extraer trigramas de caracteres Unicode
             for (size_t i = 0; i <= wline.length() - 3; ++i) {
-                // Creamos una "vista" del trigrama. Esto es casi instantáneo y no asigna nueva memoria.
                 std::wstring_view wtrigram_view(wline.data() + i, 3);
-
-                // Convertimos a string solo en el último momento, para usarlo como clave.
-                // Esto reduce a la mitad las asignaciones de memoria dentro del bucle.
                 const string trigram = converter.to_bytes(std::wstring(wtrigram_view));
                 ++trigrams[trigram];
             }
         }
         catch (const std::exception&) {
-            // En caso de error de conversión, fallback a procesamiento byte por byte
-            // Uso de string_view en el fallback:
+            // Fallback to byte-by-byte processing on conversion error
             for (size_t i = 0; i <= cleanLine.length() - 3; ++i) {
-                // Aquí también usamos una vista para ser más eficientes.
                 std::string_view trigram_view(cleanLine.data() + i, 3);
-                // Creamos el string solo al final, para usarlo como clave del mapa.
                 ++trigrams[std::string(trigram_view)];
             }
         }
     }
 
-    // Función optimizada para calcular la norma
+    /**
+     * @brief Calculates the Euclidean norm of a trigram profile.
+     *
+     * @param profile The trigram profile
+     * @return float The calculated norm
+     */
     inline float calculateNorm(const TrigramProfile& profile) noexcept {
-        float norm_sq = 0.0f; // 
+        float norm_sq = 0.0f;
         for (const auto& pair : profile) {
             norm_sq += pair.second * pair.second;
         }
@@ -90,21 +87,18 @@ TrigramProfile buildTrigramProfile(const Text& text) {
 
     TrigramProfile trigrams;
 
-    // Reserva de memoria centralizada:
-    // Pre-reservamos memoria para el mapa una sola vez al inicio.
-    // Esto evita que el mapa tenga que redimensionarse múltiples veces, mejorando el rendimiento.
-    // 80000 es una estimación generosa y segura para la cantidad de trigramas únicos.
+    // Pre-reserve memory to avoid multiple rehashing operations
     trigrams.reserve(80000);
 
-    // Implementamos un límite en la cantidad de líneas procesadas para mejorar el rendimiento
+    // Limit processed lines for performance optimization
     const size_t MAX_LINES_TO_PROCESS = 10000;
     size_t linesProcessed = 0;
 
     for (const auto& line : text) {
         if (linesProcessed >= MAX_LINES_TO_PROCESS) {
-            break; // Salimos del bucle al llegar al límite.
+            break;
         }
-        if (!line.empty()) { // Añadimos una comprobación para no procesar líneas vacías.
+        if (!line.empty()) {
             extractTrigramsFromLine(line, trigrams);
         }
         linesProcessed++;
@@ -123,7 +117,6 @@ void normalizeTrigramProfile(TrigramProfile& trigramProfile) {
         return;
     const float norm = calculateNorm(trigramProfile);
     if (norm > 0.0f) {
-        // La multiplicación es más rápida que la división.
         const float invNorm = 1.0f / norm;
         for (auto& pair : trigramProfile) {
             pair.second *= invNorm;
@@ -143,7 +136,8 @@ float getCosineSimilarity(const TrigramProfile& textProfile, const TrigramProfil
         return 0.0f;
 
     float dotProduct = 0.0f;
-    
+
+    // Iterate over the smaller profile for better performance
     const auto& smallerProfile = textProfile.size() < languageProfile.size() ? textProfile : languageProfile;
     const auto& largerProfile = textProfile.size() < languageProfile.size() ? languageProfile : textProfile;
 
@@ -174,27 +168,40 @@ string identifyLanguage(const Text& text, const LanguageProfiles& languages) {
         return "unknown";
     }
 
-    normalizeTrigramProfile(textTrigrams);
+    size_t totalTrigrams = 0;
+    for (const auto& pair : textTrigrams) {
+        totalTrigrams += pair.second;
+    }
 
     float maxSimilarity = -1.0f;
-    
-    // Guardar un puntero al string del código de idioma es ligeramente más directo
-    // que guardar un índice y luego volver a acceder al vector.
+    float secondMaxSimilarity = -1.0f;
     const string* bestLanguageCode = nullptr;
 
     for (const auto& langProfile : languages) {
         const float similarity = getCosineSimilarity(textTrigrams, langProfile.trigramProfile);
+
         if (similarity > maxSimilarity) {
+            secondMaxSimilarity = maxSimilarity;
             maxSimilarity = similarity;
             bestLanguageCode = &langProfile.languageCode;
         }
+        else if (similarity > secondMaxSimilarity) {
+            secondMaxSimilarity = similarity;
+        }
     }
 
-    // Un umbral de confianza es importante para evitar falsos positivos.
-    const float SIMILARITY_THRESHOLD = 0.01f;
-    if (maxSimilarity > SIMILARITY_THRESHOLD && bestLanguageCode != nullptr) {
+    const float SIMILARITY_THRESHOLD = 0.05f;
+    // Confidence margin - the best match should be significantly better than the second best
+    const float CONFIDENCE_MARGIN = 0.02f;
+
+    bool isConfidentMatch = maxSimilarity > SIMILARITY_THRESHOLD &&
+        bestLanguageCode != nullptr &&
+        (maxSimilarity - secondMaxSimilarity) > CONFIDENCE_MARGIN;
+
+    if (isConfidentMatch) {
         return *bestLanguageCode;
-    } else {
+    }
+    else {
         return "unknown";
     }
 }

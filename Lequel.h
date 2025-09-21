@@ -19,7 +19,7 @@
 // TrigramProfile: unorderedmap of trigram -> frequency
 typedef std::unordered_map<std::string, float> TrigramProfile;
 
-// TrigramList: vectpr of trigrams
+// TrigramList: vector of trigrams
 typedef std::vector<std::string> TrigramList;
 
 struct LanguageProfile
