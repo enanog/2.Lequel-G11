@@ -1,5 +1,5 @@
 /**
- * @brief Lequel? main module
+ * @brief Lequel? main module (MODIFICACIONES PARA uint64_t Unicode)
  * @author Dylan Frigerio, Micaela Dinsen, Marc S. Ressl
  *
  * @copyright Copyright (c) 2022-2023
@@ -66,20 +66,30 @@ bool loadLanguagesData(map<string, string>& languageCodeNames, LanguageProfiles&
 
         language.languageCode = languageCode;
 
+        // CAMBIO PRINCIPAL: Convertir trigramas string a uint64_t con soporte Unicode
         for (auto& fields : languageCSVData)
         {
             if (fields.size() != 2)
                 continue;
 
-            string trigram = fields[0];
+            string trigramString = fields[0];
             float frequency = (float)stoi(fields[1]);
 
-            language.trigramProfile[trigram] = frequency;
+            // Convertir el trigrama de string a uint64_t (con soporte Unicode)
+            uint64_t trigramInt = stringTrigramToInt(trigramString);
+
+            // Solo agregar trigramas válidos (no null)
+            if (trigramInt != 0) {
+                language.trigramProfile[trigramInt] = frequency;
+            }
         }
 
         normalizeTrigramProfile(language.trigramProfile);
+
+        cout << "Loaded " << language.trigramProfile.size() << " trigrams for " << languageCode << endl;
     }
 
+    cout << "Loaded " << languages.size() << " language profiles total." << endl;
     return true;
 }
 
@@ -154,25 +164,35 @@ int main(int, char* [])
             {
                 success = getTextFromFile(pendingFilePath, text);
                 pendingFilePath = "";
+                if (success) {
+                    cout << "Processing file with " << text.size() << " lines..." << endl;
+                }
             }
             else
             {
                 success = getTextFromString(pendingClipboard, text);
                 pendingClipboard = "";
+                if (success) {
+                    cout << "Processing clipboard text with " << text.size() << " lines..." << endl;
+                }
             }
 
             if (success)
             {
                 languageCode = identifyLanguage(text, languages);
+                cout << "Identified language: " << languageCode << endl;
             }
             else
             {
                 languageCode = "error";
+                cout << "Error processing text." << endl;
             }
 
             auto endTime = high_resolution_clock::now();
             auto duration = duration_cast<microseconds>(endTime - startTime);
             processingTimeMs = duration.count() / 1000.0;
+
+            cout << "Processing completed in " << processingTimeMs << " ms" << endl;
 
             currentState = AppState::RESULT_READY;
         }

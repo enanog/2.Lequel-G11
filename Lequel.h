@@ -16,11 +16,11 @@
 
 #include "Text.h"
 
-// TrigramProfile: unorderedmap of trigram -> frequency
-typedef std::unordered_map<std::string, float> TrigramProfile;
+ // TrigramProfile: unorderedmap of trigram (as uint32_t) -> frequency
+typedef std::unordered_map<uint64_t, float> TrigramProfile;
 
-// TrigramList: vector of trigrams
-typedef std::vector<std::string> TrigramList;
+// TrigramList: vector of trigrams (as uint32_t)
+typedef std::vector<uint64_t> TrigramList;
 
 struct LanguageProfile
 {
@@ -30,10 +30,15 @@ struct LanguageProfile
 
 typedef std::vector<LanguageProfile> LanguageProfiles;
 
+// Helper functions for uint32_t trigrams
+uint64_t wcharTrigramToInt(const wchar_t* data);
+std::wstring intToWcharTrigram(uint64_t trigram);
+uint64_t stringTrigramToInt(const std::string& trigram);
+
 // Functions
-TrigramProfile buildTrigramProfile(const Text &text);
-void normalizeTrigramProfile(TrigramProfile &trigramProfile);
-float getCosineSimilarity(const TrigramProfile &textProfile, const TrigramProfile& language);
-std::string identifyLanguage(const Text &text, const LanguageProfiles &languages);
+TrigramProfile buildTrigramProfile(const Text& text);
+void normalizeTrigramProfile(TrigramProfile& trigramProfile);
+float getCosineSimilarity(const TrigramProfile& textProfile, const TrigramProfile& language);
+std::string identifyLanguage(const Text& text, const LanguageProfiles& languages);
 
 #endif

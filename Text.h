@@ -8,11 +8,11 @@
 #ifndef TEXT_H
 #define TEXT_H
 
-#include <list>
+#include <vector>
 #include <string>
 
 // Text: list of strings
-typedef std::list<std::string> Text;
+typedef std::vector<std::string> Text;
 
 // Functions
 bool getTextFromString(const std::string &s, Text &text);

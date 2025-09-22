@@ -1,5 +1,5 @@
 /**
- * @brief Lequel? language identification based on trigrams (Optimized)
+ * @brief Lequel? language identification based on trigrams (Unicode Optimized)
  * @author Dylan Frigerio, Micaela Dinsen, Marc S. Ressl
  *
  * @copyright Copyright (c) 2022-2023
@@ -18,12 +18,11 @@
 using namespace std;
 
 namespace {
-    // Thread-local converter to avoid constant recreation
+    // Thread-local converter for UTF-8 to wide string conversion - avoids recreating converter objects
     thread_local std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
     /**
      * @brief Extracts trigrams from a single line of text and adds them to the profile.
-     *
      * @param line The input text line to process
      * @param trigrams Reference to the trigram profile to update
      */
@@ -40,44 +39,57 @@ namespace {
         if (cleanLine.length() < 3) return;
 
         try {
-            // Unicode conversion for proper character handling
+            // Unicode conversion for proper character handling - essential for non-Latin scripts
             wstring wline = converter.from_bytes(cleanLine);
 
             if (wline.length() < 3) return;
 
+            // Extract trigrams as uint64_t - much faster than string comparison and hashing
             for (size_t i = 0; i <= wline.length() - 3; ++i) {
-                std::wstring_view wtrigram_view(wline.data() + i, 3);
-                const string trigram = converter.to_bytes(std::wstring(wtrigram_view));
-                ++trigrams[trigram];
+                uint64_t trigram = wcharTrigramToInt(wline.data() + i);
+
+                // Skip trigrams with null characters - they don't provide meaningful language information
+                if (trigram != 0 &&
+                   (trigram & 0xFFFF) != 0 &&
+                   ((trigram >> 16) & 0xFFFF) != 0 &&
+                   ((trigram >> 32) & 0xFFFF) != 0) {
+                    ++trigrams[trigram];
+                }
             }
         }
         catch (const std::exception&) {
-            // Fallback to byte-by-byte processing on conversion error
-            for (size_t i = 0; i <= cleanLine.length() - 3; ++i) {
-                std::string_view trigram_view(cleanLine.data() + i, 3);
-                ++trigrams[std::string(trigram_view)];
+            // Fallback to byte-by-byte processing on conversion error - handles corrupted UTF-8
+            if (cleanLine.length() >= 3) {
+                for (size_t i = 0; i <= cleanLine.length() - 3; ++i) {
+                    // Pack bytes as if they were wchar_t for consistency with Unicode processing
+                    uint64_t trigram = (uint64_t(static_cast<unsigned char>(cleanLine[i])) << 32) |
+                                       (uint64_t(static_cast<unsigned char>(cleanLine[i + 1])) << 16) |
+                                        uint64_t(static_cast<unsigned char>(cleanLine[i + 2]));
+
+                    if (trigram != 0) {
+                        ++trigrams[trigram];
+                    }
+                }
             }
         }
     }
 
     /**
      * @brief Calculates the Euclidean norm of a trigram profile.
-     *
      * @param profile The trigram profile
      * @return float The calculated norm
      */
     inline float calculateNorm(const TrigramProfile& profile) noexcept {
         float norm_sq = 0.0f;
-        for (const auto& pair : profile) {
-            norm_sq += pair.second * pair.second;
+        for (const auto& [key, value] : profile) {
+            norm_sq += value * value;
         }
-        return std::sqrt(norm_sq);
+        return sqrt(norm_sq);
     }
 }
 
 /**
  * @brief Builds a trigram profile from a given text.
- *
  * @param text Vector of lines (Text)
  * @return TrigramProfile The trigram profile
  */
@@ -87,21 +99,15 @@ TrigramProfile buildTrigramProfile(const Text& text) {
 
     TrigramProfile trigrams;
 
-    // Pre-reserve memory to avoid multiple rehashing operations
-    trigrams.reserve(80000);
+    // Pre-reserve space for Unicode trigrams - prevents multiple memory reallocations
+    trigrams.reserve(200000);
 
-    // Limit processed lines for performance optimization
-    const size_t MAX_LINES_TO_PROCESS = 10000;
-    size_t linesProcessed = 0;
+    size_t totalChars = 0;
 
     for (const auto& line : text) {
-        if (linesProcessed >= MAX_LINES_TO_PROCESS) {
-            break;
-        }
-        if (!line.empty()) {
+        if (line.length() >= 3) {
             extractTrigramsFromLine(line, trigrams);
         }
-        linesProcessed++;
     }
 
     return trigrams;
@@ -109,24 +115,24 @@ TrigramProfile buildTrigramProfile(const Text& text) {
 
 /**
  * @brief Normalizes a trigram profile.
- *
  * @param trigramProfile The trigram profile.
  */
 void normalizeTrigramProfile(TrigramProfile& trigramProfile) {
     if (trigramProfile.empty())
         return;
+
     const float norm = calculateNorm(trigramProfile);
     if (norm > 0.0f) {
         const float invNorm = 1.0f / norm;
-        for (auto& pair : trigramProfile) {
-            pair.second *= invNorm;
+        // Normalize frequencies to unit vector - enables cosine similarity calculation
+        for (auto& [key, value] : trigramProfile) {
+            value *= invNorm;
         }
     }
 }
 
 /**
  * @brief Calculates the cosine similarity between two trigram profiles
- *
  * @param textProfile The text trigram profile
  * @param languageProfile The language trigram profile
  * @return float The cosine similarity score
@@ -137,14 +143,14 @@ float getCosineSimilarity(const TrigramProfile& textProfile, const TrigramProfil
 
     float dotProduct = 0.0f;
 
-    // Iterate over the smaller profile for better performance
+    // Iterate over the smaller profile for better performance - O(min(n,m)) instead of O(max(n,m))
     const auto& smallerProfile = textProfile.size() < languageProfile.size() ? textProfile : languageProfile;
     const auto& largerProfile = textProfile.size() < languageProfile.size() ? languageProfile : textProfile;
 
-    for (const auto& pair : smallerProfile) {
-        auto it = largerProfile.find(pair.first);
+    for (const auto& [key, value] : smallerProfile) {
+        auto it = largerProfile.find(key);
         if (it != largerProfile.end()) {
-            dotProduct += pair.second * it->second;
+            dotProduct += value * it->second;
         }
     }
 
@@ -153,7 +159,6 @@ float getCosineSimilarity(const TrigramProfile& textProfile, const TrigramProfil
 
 /**
  * @brief Identifies the language of a text.
- *
  * @param text A Text (vector of lines)
  * @param languages A list of Language objects
  * @return string The language code of the most likely language
@@ -163,15 +168,23 @@ string identifyLanguage(const Text& text, const LanguageProfiles& languages) {
         return "unknown";
     }
 
+    cout << "Building trigram profile..." << endl;
+
     TrigramProfile textTrigrams = buildTrigramProfile(text);
     if (textTrigrams.empty()) {
         return "unknown";
     }
 
+    cout << "Normalizing trigram profile..." << endl;
+    normalizeTrigramProfile(textTrigrams);
+
+    // Calculate total trigrams for information
     size_t totalTrigrams = 0;
-    for (const auto& pair : textTrigrams) {
-        totalTrigrams += pair.second;
+    for (const auto& [key, value] : textTrigrams) {
+        totalTrigrams += static_cast<size_t>(value);
     }
+
+    cout << "Total trigrams extracted: " << totalTrigrams << endl;
 
     float maxSimilarity = -1.0f;
     float secondMaxSimilarity = -1.0f;
@@ -190,8 +203,8 @@ string identifyLanguage(const Text& text, const LanguageProfiles& languages) {
         }
     }
 
+    // Confidence thresholds to avoid false positives with very similar languages
     const float SIMILARITY_THRESHOLD = 0.05f;
-    // Confidence margin - the best match should be significantly better than the second best
     const float CONFIDENCE_MARGIN = 0.02f;
 
     bool isConfidentMatch = maxSimilarity > SIMILARITY_THRESHOLD &&
@@ -199,9 +212,50 @@ string identifyLanguage(const Text& text, const LanguageProfiles& languages) {
         (maxSimilarity - secondMaxSimilarity) > CONFIDENCE_MARGIN;
 
     if (isConfidentMatch) {
+        cout << "Best match: " << *bestLanguageCode
+            << " (similarity: " << maxSimilarity << ")" << endl;
         return *bestLanguageCode;
     }
     else {
+        cout << "No confident match found (best similarity: "
+            << maxSimilarity << ")" << endl;
         return "unknown";
     }
+}
+
+// Global helper function implementations
+uint64_t wcharTrigramToInt(const wchar_t* data) {
+    // Pack three wide characters into a single 64-bit integer for fast comparison
+    return  (uint64_t(data[0]) << 32) |
+            (uint64_t(data[1]) << 16) |
+             uint64_t(data[2]);
+}
+
+std::wstring intToWcharTrigram(uint64_t trigram) {
+    wstring result(3, L'\0');
+    result[0] = static_cast<wchar_t>((trigram >> 32) & 0xFFFF);
+    result[1] = static_cast<wchar_t>((trigram >> 16) & 0xFFFF);
+    result[2] = static_cast<wchar_t>(trigram & 0xFFFF);
+    return result;
+}
+
+uint64_t stringTrigramToInt(const std::string& trigram) {
+    if (trigram.empty()) return 0;
+
+    try {
+        thread_local std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+        wstring wtrigram = conv.from_bytes(trigram);
+        if (wtrigram.length() >= 3) {
+            return ::wcharTrigramToInt(wtrigram.data());
+        }
+    }
+    catch (const std::exception&) {
+        // Fallback for invalid UTF-8 - treats bytes as characters
+        if (trigram.length() >= 3) {
+            return (uint64_t(static_cast<unsigned char>(trigram[0])) << 32) |
+                   (uint64_t(static_cast<unsigned char>(trigram[1])) << 16) |
+                    uint64_t(static_cast<unsigned char>(trigram[2]));
+        }
+    }
+    return 0;
 }
