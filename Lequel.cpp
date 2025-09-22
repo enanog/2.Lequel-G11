@@ -42,6 +42,7 @@ namespace {
             // Unicode conversion for proper character handling - essential for non-Latin scripts
             wstring wline = converter.from_bytes(cleanLine);
 
+			cout << "Processing line wline" << endl;
             if (wline.length() < 3) return;
 
             // Extract trigrams as uint64_t - much faster than string comparison and hashing
@@ -59,6 +60,7 @@ namespace {
         }
         catch (const std::exception&) {
             // Fallback to byte-by-byte processing on conversion error - handles corrupted UTF-8
+			cout << "Processing line exception" << endl;
             if (cleanLine.length() >= 3) {
                 for (size_t i = 0; i <= cleanLine.length() - 3; ++i) {
                     // Pack bytes as if they were wchar_t for consistency with Unicode processing
@@ -168,14 +170,15 @@ string identifyLanguage(const Text& text, const LanguageProfiles& languages) {
         return "unknown";
     }
 
-    cout << "Building trigram profile..." << endl;
+	cout << "Building trigram profile for input text..." << endl;
 
     TrigramProfile textTrigrams = buildTrigramProfile(text);
     if (textTrigrams.empty()) {
         return "unknown";
     }
 
-    cout << "Normalizing trigram profile..." << endl;
+	cout << "Normalizing trigram profile..." << endl;
+
     normalizeTrigramProfile(textTrigrams);
 
     // Calculate total trigrams for information
@@ -184,32 +187,20 @@ string identifyLanguage(const Text& text, const LanguageProfiles& languages) {
         totalTrigrams += static_cast<size_t>(value);
     }
 
-    cout << "Total trigrams extracted: " << totalTrigrams << endl;
-
     float maxSimilarity = -1.0f;
-    float secondMaxSimilarity = -1.0f;
     const string* bestLanguageCode = nullptr;
 
     for (const auto& langProfile : languages) {
         const float similarity = getCosineSimilarity(textTrigrams, langProfile.trigramProfile);
 
         if (similarity > maxSimilarity) {
-            secondMaxSimilarity = maxSimilarity;
             maxSimilarity = similarity;
             bestLanguageCode = &langProfile.languageCode;
         }
-        else if (similarity > secondMaxSimilarity) {
-            secondMaxSimilarity = similarity;
-        }
     }
-
-    // Confidence thresholds to avoid false positives with very similar languages
-    const float SIMILARITY_THRESHOLD = 0.05f;
-    const float CONFIDENCE_MARGIN = 0.02f;
-
-    bool isConfidentMatch = maxSimilarity > SIMILARITY_THRESHOLD &&
-        bestLanguageCode != nullptr &&
-        (maxSimilarity - secondMaxSimilarity) > CONFIDENCE_MARGIN;
+	const float similarityThreshold = 0.01f; // Minimum similarity to consider a match
+    bool isConfidentMatch = (maxSimilarity > similarityThreshold) &&
+                            bestLanguageCode != nullptr;
 
     if (isConfidentMatch) {
         cout << "Best match: " << *bestLanguageCode
@@ -246,7 +237,7 @@ uint64_t stringTrigramToInt(const std::string& trigram) {
         thread_local std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
         wstring wtrigram = conv.from_bytes(trigram);
         if (wtrigram.length() >= 3) {
-            return ::wcharTrigramToInt(wtrigram.data());
+            return wcharTrigramToInt(wtrigram.data());
         }
     }
     catch (const std::exception&) {
