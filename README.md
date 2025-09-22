@@ -87,7 +87,63 @@ WE WERE ALL GOING DIRECT TO HEAVEN, WE WERE ALL GOING DIRECT THE OTHER WAY
 Lequel dice que está en "desconocido", debido a que el perfil de idioma para el inglés que Lequel tiene almacenado fue creado a partir de textos normales, que están mayormente en minúsculas. El perfil de referencia del inglés contiene trigramas como "the", " was", " of", "tim", y el perfil generado a partir del texto de entrada contiene trigramas completamente diferentes: "THE", " WAS", " OF", "TIM". Para la computadora, "the" y "THE" son dos secuencias de bytes totalmente distintas. Como resultado, hay casi cero coincidencias entre los trigramas del texto de entrada y los del perfil de inglés. La similitud de coseno calculada es extremadamente baja, cayendo por debajo del umbral de confianza (SIMILARITY_THRESHOLD). Por lo tanto, el programa concluye que no puede identificar el idioma con certeza y devuelve "desconocido".
 
 ## Bonus points
+## Cambios y Optimizaciones Realizadas
 
-El cuello de botella es la creación del perfil de trigramas (muchas asignaciones de memoria y conversiones), lo resolvimos con la optimización del límite de 10,000 líneas, las optimizaciones de string_view y pre-reserva de memoria.
-Como bonus tambien agregamos la libreria de chronos para medir tiempos de ejecución y mostrar en consola.
+### 1. Sustitución de estructuras de datos
+- **`map` → `unordered_map`**  
+  - Se reemplazó `map` por `unordered_map` en la representación de perfiles de trigramas.  
+  - Razón: `unordered_map` utiliza *hashing* en lugar de un árbol balanceado, lo que permite **acceso y actualizaciones promedio en O(1)**, mejorando la velocidad en comparación con O(log n) de `map`.  
+  - Este cambio es crítico porque el número de trigramas distintos puede ser muy grande.
 
+- **`list` → `vector`**  
+  - En la representación de textos (`Text`) y otras estructuras internas se reemplazó `list` por `vector`.  
+  - Razón: los accesos secuenciales y aleatorios son más rápidos en `vector`, debido a la memoria contigua en RAM.  
+  - Además, `vector` reduce la sobrecarga de punteros que sí tienen las listas enlazadas.  
+  - Este cambio resulta más eficiente para recorrer líneas y trigramas.
+
+---
+
+### 2. Representación de trigramas con `uint64_t`
+- Los trigramas ya no se almacenan como cadenas (`string`), sino como **enteros de 64 bits (`uint64_t`)**.  
+- Cada trigrama (3 caracteres Unicode en UTF-16) se empaqueta en un solo `uint64_t`.  
+  - Ejemplo:  
+    - Primer carácter → bits 32–47  
+    - Segundo carácter → bits 16–31  
+    - Tercer carácter → bits 0–15  
+- **Ventajas**:
+  - Comparaciones y *hashing* mucho más rápidas que con `string`.  
+  - Reducción significativa en el uso de memoria.  
+  - Mejor rendimiento en búsquedas dentro de `unordered_map`.
+
+---
+
+### 3. Optimización de memoria
+- Se agregó un **`reserve()`** inicial al crear perfiles de trigramas.  
+- Esto previene múltiples **realocaciones dinámicas** a medida que se insertan nuevos elementos.  
+- Resultado:  
+  - Menor fragmentación de memoria.  
+  - Mayor rendimiento en la construcción de perfiles de trigramas grandes.
+
+---
+
+### 4. Medición de tiempos con `<chrono>`
+- Se incorporó la librería estándar **`<chrono>`** para medir el tiempo de ejecución.  
+- Ahora se puede conocer cuánto tarda el análisis de un texto en identificarse.  
+- Esto permite evaluar el rendimiento y comparar mejoras entre implementaciones.  
+- El tiempo se muestra tanto en **milisegundos** como en **segundos** (si supera 1000 ms).
+
+---
+
+## 📂 Cambios en archivos
+- **`Lequel.h / Lequel.cpp`**  
+  - Trigramas almacenados como `uint64_t` en lugar de `string`.  
+  - Se reemplazó `map` por `unordered_map`.  
+  - Se añadió `reserve()` en la creación de perfiles.  
+
+- **`Text.h / Text.cpp`**  
+  - Tipo `Text` pasó de `list<string>` a `vector<string>`.  
+  - Mejor desempeño en lectura y procesamiento de archivos.  
+
+- **`main.cpp`**  
+  - Incorporación de la librería `<chrono>` para medir el tiempo de ejecución.  
+  - Ajustes en el flujo de procesamiento para mostrar el tiempo junto al resultado de identificación.

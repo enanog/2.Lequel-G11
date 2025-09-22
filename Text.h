@@ -1,7 +1,8 @@
 /**
  * @brief Reads text files
  * @author Marc S. Ressl
- *
+ * @modified Dylan Frigerio, Micaela Dinsen
+ * 
  * @copyright Copyright (c) 2022-2023
  */
 
