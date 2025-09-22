@@ -2,7 +2,7 @@
 
 ## Integrantes del grupo y contribución al trabajo de cada integrante
 * Micaela Dinsen: optimizaciones de rendimiento, mejoras en precisión de detección, documentación del código.
-* Dylan Frigerio: implementación inicial, pruebas de precisión, documentación del código.
+* Dylan Frigerio: implementación inicial, optimizaciones de rendimiento, pruebas de precisión, documentación del código.
 
 
 ## Respuestas del enunciado
@@ -84,7 +84,7 @@ WE HAD EVERYTHING BEFORE US, WE HAD NOTHING BEFORE US,
 WE WERE ALL GOING DIRECT TO HEAVEN, WE WERE ALL GOING DIRECT THE OTHER WAY
 – IN SHORT, THE PERIOD WAS SO FAR LIKE THE PRESENT PERIOD, THAT SOME OF ITS NOISIEST AUTHORITIES INSISTED ON ITS BEING RECEIVED, FOR GOOD OR FOR EVIL, IN THE SUPERLATIVE DEGREE OF COMPARISON ONLY.
 
-Lequel dice que está en "desconocido", debido a que el perfil de idioma para el inglés que Lequel tiene almacenado fue creado a partir de textos normales, que están mayormente en minúsculas. El perfil de referencia del inglés contiene trigramas como "the", " was", " of", "tim", y el perfil generado a partir del texto de entrada contiene trigramas completamente diferentes: "THE", " WAS", " OF", "TIM". Para la computadora, "the" y "THE" son dos secuencias de bytes totalmente distintas. Como resultado, hay casi cero coincidencias entre los trigramas del texto de entrada y los del perfil de inglés. La similitud de coseno calculada es extremadamente baja, cayendo por debajo del umbral de confianza (SIMILARITY_THRESHOLD). Por lo tanto, el programa concluye que no puede identificar el idioma con certeza y devuelve "desconocido".
+Ahora Lequel identifica correctamente el texto como "inglés" gracias a la normalización automática a minúsculas implementada. Anteriormente fallaba porque el perfil de inglés se entrenó con texto en minúsculas.
 
 ## Bonus points
 ## Cambios y Optimizaciones Realizadas
@@ -92,14 +92,11 @@ Lequel dice que está en "desconocido", debido a que el perfil de idioma para el
 ### 1. Sustitución de estructuras de datos
 - **`map` → `unordered_map`**  
   - Se reemplazó `map` por `unordered_map` en la representación de perfiles de trigramas.  
-  - Razón: `unordered_map` utiliza *hashing* en lugar de un árbol balanceado, lo que permite **acceso y actualizaciones promedio en O(1)**, mejorando la velocidad en comparación con O(log n) de `map`.  
-  - Este cambio es crítico porque el número de trigramas distintos puede ser muy grande.
+  - Razón: `unordered_map` utiliza *hashing* en lugar de un árbol balanceado, lo que permite **acceso y actualizaciones promedio en O(1)**.
 
 - **`list` → `vector`**  
   - En la representación de textos (`Text`) y otras estructuras internas se reemplazó `list` por `vector`.  
-  - Razón: los accesos secuenciales y aleatorios son más rápidos en `vector`, debido a la memoria contigua en RAM.  
-  - Además, `vector` reduce la sobrecarga de punteros que sí tienen las listas enlazadas.  
-  - Este cambio resulta más eficiente para recorrer líneas y trigramas.
+  - `vector` reduce la sobrecarga de punteros que sí tienen las listas enlazadas.  
 
 ---
 
@@ -110,23 +107,31 @@ Lequel dice que está en "desconocido", debido a que el perfil de idioma para el
     - Primer carácter → bits 32–47  
     - Segundo carácter → bits 16–31  
     - Tercer carácter → bits 0–15  
-- **Ventajas**:
-  - Comparaciones y *hashing* mucho más rápidas que con `string`.  
-  - Reducción significativa en el uso de memoria.  
-  - Mejor rendimiento en búsquedas dentro de `unordered_map`.
 
 ---
 
-### 3. Optimización de memoria
+### 3. Migración a Unicode (UTF-16) con wstring
+- El tipo Text pasó de vector<string> a vector<wstring>.
+- Se implementó conversión automática de UTF-8 a UTF-16 usando wstring_convert<codecvt_utf8_utf16<wchar_t>>.
+
+---
+
+### 4. Normalización automática a minúsculas
+- Conversión automática a minúsculas durante la lectura
+  - Se integró std::transform con ::towlower en getTextFromString  ().
+  - Todo el texto se convierte automáticamente a minúsculas antes de generar
+
+---
+
+### 5. Optimización de memoria
+- Se estima que habrá aproximadamente 1 trigrama único por cada 7 trigramas totales.
 - Se agregó un **`reserve()`** inicial al crear perfiles de trigramas.  
 - Esto previene múltiples **realocaciones dinámicas** a medida que se insertan nuevos elementos.  
-- Resultado:  
-  - Menor fragmentación de memoria.  
-  - Mayor rendimiento en la construcción de perfiles de trigramas grandes.
+- Se ajusta el tamaño del hash map al número final de elementos para optimizar el rendimiento.
 
 ---
 
-### 4. Medición de tiempos con `<chrono>`
+### 6. Medición de tiempos con `<chrono>`
 - Se incorporó la librería estándar **`<chrono>`** para medir el tiempo de ejecución.  
 - Ahora se puede conocer cuánto tarda el análisis de un texto en identificarse.  
 - Esto permite evaluar el rendimiento y comparar mejoras entre implementaciones.  
@@ -139,10 +144,12 @@ Lequel dice que está en "desconocido", debido a que el perfil de idioma para el
   - Trigramas almacenados como `uint64_t` en lugar de `string`.  
   - Se reemplazó `map` por `unordered_map`.  
   - Se añadió `reserve()` en la creación de perfiles.  
+  - Agregado de rehash() final para optimizar el hash map.
 
 - **`Text.h / Text.cpp`**  
-  - Tipo `Text` pasó de `list<string>` a `vector<string>`.  
-  - Mejor desempeño en lectura y procesamiento de archivos.  
+  - Tipo `Text` pasó de `list<string>` a `vector<wstring>`.  
+  - Integración de conversión UTF-8 a UTF-16 con wstring_convert.
+  - Implementación de normalización automática a minúsculas usando std::transform y ::towlower. 
 
 - **`main.cpp`**  
   - Incorporación de la librería `<chrono>` para medir el tiempo de ejecución.  

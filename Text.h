@@ -13,7 +13,7 @@
 #include <string>
 
 // Text: list of strings
-typedef std::vector<std::string> Text;
+typedef std::vector<std::wstring> Text;
 
 // Functions
 bool getTextFromString(const std::string &s, Text &text);
